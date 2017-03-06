@@ -47,7 +47,7 @@ public class WGC_Learner_Minimal {
 
 		 		
         // Choosing the EQ oracle
-		EquivalenceOracle<MealyMachine<?, String, ?, String>, String, Word<String>> eqOracle 
+        EquivalenceOracle<MealyMachine<?, String, ?, String>, String, Word<String>> eqOracle 
 			= new RandomWalkEQOracle<>(
 					0.05, // reset SUL w/ this probability before a step 
 					10000, // max steps (overall)
