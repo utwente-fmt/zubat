@@ -1,4 +1,4 @@
-package nl.utwente.fmt.etfexporter;
+package net.automatalib.serialization.etf;
 
 public class ETFEdge {
 	

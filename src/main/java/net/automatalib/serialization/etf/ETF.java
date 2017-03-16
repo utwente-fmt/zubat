@@ -1,4 +1,4 @@
-package nl.utwente.fmt.etfexporter;
+package net.automatalib.serialization.etf;
 
 import java.io.Flushable;
 import java.io.IOException;
@@ -14,7 +14,6 @@ import net.automatalib.automata.graphs.TransitionEdge;
 import net.automatalib.automata.transout.MealyMachine;
 import net.automatalib.automata.transout.TransitionOutputAutomaton;
 import net.automatalib.commons.util.mappings.MutableMapping;
-import net.automatalib.commons.util.strings.StringUtil;
 import net.automatalib.graphs.Graph;
 import net.automatalib.graphs.UndirectedGraph;
 import net.automatalib.graphs.dot.AggregateDOTHelper;
@@ -23,10 +22,20 @@ import net.automatalib.graphs.dot.GraphDOTHelper;
 
 public class ETF {
 	
-	public static <I> void export(MealyMachine machine, Collection<? extends I> inputs, Appendable a){
+	public static <I,O> void export(MealyMachine<?,I,?,O> machine, Collection<I> inputs, Appendable a, Collection<O> skipOutputs){
 
 		try {
-			writeRaw4(machine, machine.transitionGraphView(inputs), a);
+			writeRaw4(machine, machine.transitionGraphView(inputs), a, skipOutputs);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static <I,O> void export(MealyMachine<?,I,?,O> machine, Collection<I> inputs, Appendable a){
+
+		try {
+			writeRaw4(machine, machine.transitionGraphView(inputs), a, null);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -34,20 +43,10 @@ public class ETF {
 	}
 
 	
-	public static <N,E,S,I,T,O> void writeRaw4(TransitionOutputAutomaton<S,I,T,O> automaton, Graph<N, E> graph,
-			Appendable a) throws IOException {
-		
-		
-		GraphDOTHelper<N,? super E> helper = graph.getGraphDOTHelper();
-		
-		List<GraphDOTHelper<N,? super E>> helpers = new ArrayList<>(0 + 1);
-		helpers.add(helper);
-		
-		GraphDOTHelper<N, E> dotHelper = new AggregateDOTHelper<>(helpers);
-		
-		
-		if(dotHelper == null)
-			dotHelper = new DefaultDOTHelper<N, E>();
+	public static <N,E,O,T> void writeRaw4(TransitionOutputAutomaton<?,?,T,O> automaton, Graph<N, E> graph,
+			Appendable a, Collection<O> skipOutputs) throws IOException {
+				
+		GraphDOTHelper<N, E> dotHelper = new DefaultDOTHelper<>();
 		
 		boolean directed = true;
 		if(graph instanceof UndirectedGraph)
@@ -60,8 +59,8 @@ public class ETF {
 		MutableMapping<N,String> nodeNames = graph.createStaticNodeMapping();
 		
 		
-		Set inputs = new HashSet<String>();
-		Set outputs = new HashSet<String>();
+		Set inputs = new HashSet<>();
+		Set outputs = new HashSet<>();
 		
 		
 		int i = 0;
@@ -73,7 +72,7 @@ public class ETF {
 			nodeNames.put(node, id);
 		}
 		
-		Set<ETFEdge> edges = new HashSet<ETFEdge>();
+		Set<ETFEdge> edges = new HashSet<>();
 		
 		for(N node : graph) {
 			String srcId = nodeNames.get(node);
@@ -99,16 +98,17 @@ public class ETF {
 				TransitionEdge edge = (TransitionEdge) e;
 				String input = String.valueOf(edge.getInput());
 				O output = automaton.getTransitionOutput((T) edge.getTransition());
-				
-				inputs.add(input);
-				outputs.add(output.toString());
-				
-				ETFEdge etfEdge = new ETFEdge(srcId, tgtId, input, output.toString());
-				edges.add(etfEdge);
+				if (skipOutputs == null || !skipOutputs.contains(output)) {
+                    inputs.add(input);
+                    outputs.add(output.toString());
+
+                    ETFEdge etfEdge = new ETFEdge(srcId, tgtId, input, output.toString());
+                    edges.add(etfEdge);
+                }
 			}
 		}
 		
-		List<String> inputList = new ArrayList<String>();
+		List<String> inputList = new ArrayList<>();
 		inputList.addAll(inputs);
 		
 		List<String> outputList = new ArrayList();
@@ -130,6 +130,9 @@ public class ETF {
 		a.append("end trans");a.append("\n");
 		
 		a.append("begin sort label");a.append("\n");
+        for (int s = 0; s < graph.size(); s++) {
+            a.append("\""+s+"\"");a.append("\n");
+        }
 		a.append("end sort");a.append("\n");
 		
 		a.append("begin sort input");a.append("\n");
