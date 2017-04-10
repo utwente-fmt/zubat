@@ -1,0 +1,4 @@
+This project makes use of Project Lombok. 
+Although Maven will include this in the build process, Eclipse will still show errors.
+To get rid of the Eclipse errors: Install Lombok on your pc. See the site for instructions:
+https://projectlombok.org/mavenrepo/index.html
