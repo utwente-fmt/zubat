@@ -22,10 +22,34 @@ import net.automatalib.graphs.dot.GraphDOTHelper;
 
 public class ETF {
 	
+	
+
+	
+	public static <I,O> void export(MealyMachine<?,I,?,O> machine, Collection<I> inputs, Appendable a, Collection<O> skipOutputs, boolean singleLabelEdge){
+
+		try {
+			writeRaw4(machine, machine.transitionGraphView(inputs), a, skipOutputs, singleLabelEdge);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
 	public static <I,O> void export(MealyMachine<?,I,?,O> machine, Collection<I> inputs, Appendable a, Collection<O> skipOutputs){
 
 		try {
-			writeRaw4(machine, machine.transitionGraphView(inputs), a, skipOutputs);
+			writeRaw4(machine, machine.transitionGraphView(inputs), a, skipOutputs, false);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static <I> void export(MealyMachine machine, Collection<? extends I> inputs, Appendable a, boolean singleLabelEdge ){
+
+		try {
+			writeRaw4(machine, machine.transitionGraphView(inputs), a, null, singleLabelEdge);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -35,16 +59,18 @@ public class ETF {
 	public static <I,O> void export(MealyMachine<?,I,?,O> machine, Collection<I> inputs, Appendable a){
 
 		try {
-			writeRaw4(machine, machine.transitionGraphView(inputs), a, null);
+			writeRaw4(machine, machine.transitionGraphView(inputs), a, null, false);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+	
 
+	//--------------------------------------------------------------------------------------
 	
 	public static <N,E,O,T> void writeRaw4(TransitionOutputAutomaton<?,?,T,O> automaton, Graph<N, E> graph,
-			Appendable a, Collection<O> skipOutputs) throws IOException {
+			Appendable a, Collection<O> skipOutputs, boolean singleLabelEdge) throws IOException {
 				
 		GraphDOTHelper<N, E> dotHelper = new DefaultDOTHelper<>();
 		
@@ -116,7 +142,23 @@ public class ETF {
 
 //		System.out.println("-------------------------------------------------------");
 		
-
+		boolean doubleEdge = !singleLabelEdge;
+		if(doubleEdge){
+			appendDoubleEdgeLabel(graph.size(), edges, inputList, outputList, a);
+		} else {
+			appendSingleEdgeLabel(graph.size(), edges, inputList, outputList, a);
+		}
+	
+	
+		if (a instanceof Flushable) {
+			((Flushable) a).flush();
+		}
+	}
+	
+	/*
+	 * Produces an ETF model with input and output label on the same edge.
+	 */
+	public static void appendDoubleEdgeLabel(int nodes, Set<ETFEdge> edges, List<String> inputList, List<String> outputList, Appendable a) throws IOException{
 		a.append("begin state\nlabel:label\nend state\n");
 		a.append("begin edge\ninput:input output:output\nend edge\n");
 		a.append("begin init\n0\nend init\n");
@@ -130,7 +172,7 @@ public class ETF {
 		a.append("end trans");a.append("\n");
 		
 		a.append("begin sort label");a.append("\n");
-        for (int s = 0; s < graph.size(); s++) {
+		for (int s = 0; s < nodes; s++) {
             a.append("\""+s+"\"");a.append("\n");
         }
 		a.append("end sort");a.append("\n");
@@ -146,11 +188,44 @@ public class ETF {
 			a.append("\""+string+"\"");a.append("\n");
 		}
 		a.append("end sort");a.append("\n");
+	}
+
+	/*
+	 * Produces an ETF model with seperate edges for input and output labels
+	 */
+	public static void appendSingleEdgeLabel(int nodes, Set<ETFEdge> edges, List<String> inputList, List<String> outputList, Appendable a) throws IOException{
+		a.append("begin state\nlabel:label\nend state\n");
+		a.append("begin edge\nvalue:value\nend edge\n");
+		a.append("begin init\n0\nend init\n");
 		
-	
-		if (a instanceof Flushable) {
-			((Flushable) a).flush();
+
+		
+		a.append("begin trans"); a.append("\n");
+		for (ETFEdge edge : edges) {
+			
+			a.append(edge.getSrc()+"/" +nodes+" "+inputList.indexOf(edge.getInput()));
+		    a.append("\n");
+		    a.append(nodes+"/" +edge.getTgt()+" "+(inputList.size()+outputList.indexOf(edge.getOutput())));
+		    a.append("\n");
+		    nodes++;
 		}
+		a.append("end trans");a.append("\n");
+		
+		a.append("begin sort label");a.append("\n");
+		for (int s = 0; s < nodes; s++) {
+            a.append("\""+s+"\"");a.append("\n");
+        }
+		a.append("end sort");a.append("\n");
+		
+		a.append("begin sort value");a.append("\n");
+		for (String string : inputList) {
+			a.append("\""+string+"\"");a.append("\n");
+		}
+		for (String string : outputList){
+			a.append("\""+string+"\"");a.append("\n");
+		}
+		a.append("end sort");a.append("\n");
+		
 	}
 
 }
