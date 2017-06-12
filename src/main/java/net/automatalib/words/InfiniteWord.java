@@ -86,7 +86,7 @@ public class InfiniteWord<I, S> extends Word<I> {
 
     @Override
     public int length() {
-        if (prefix.isEmpty()) return 0;
+        if (loop.isEmpty() && prefix.isEmpty()) return 0;
         throw new InfiniteWordException();
     }
 
