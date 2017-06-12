@@ -39,29 +39,27 @@ public class FSM {
             else if (currentPart == 2) {
                 final String[] split = line.split(" ");
 
-                	/*
-                	 * If the split has length three, we assume one label per edge and merge two edges/lines.
-                	 * Otherwise we obtain the transition from one edge/label.
-                	 */
-                	if(split.length == 3){
-                		String line2 = s.nextLine();
-                		String[] split2 = line2.split(" ");
-                		final Transition t = new Transition(split[0], split2[1], split[2], split2[2]);
-                        inputs.add(t.getInput());
-                        if (!states.contains(t.getSource())) states.add(t.getSource());
-		        if (!states.contains(t.getTarget())) states.add(t.getTarget());
-		        transitions.add(t);
-                	} else {
-                		final Transition t = new Transition(split[0], split[1], split[2], split[3]);
-                        inputs.add(t.getInput());
-                        if (!states.contains(t.getSource())) states.add(t.getSource());
-                        if (!states.contains(t.getTarget())) states.add(t.getTarget());
-                        transitions.add(t);
-                	}
-
+                /*
+                 * If the split has length three, we assume one label per edge and merge two edges/lines.
+                 * Otherwise we obtain the transition from one edge/label.
+                 */
+                if (split.length == 3) {
+                    String line2 = s.nextLine();
+                    String[] split2 = line2.split(" ");
+                    final Transition t = new Transition(split[0], split2[1], split[2], split2[2]);
+                    inputs.add(t.getInput());
+                    if (!states.contains(t.getSource())) states.add(t.getSource());
+                    if (!states.contains(t.getTarget())) states.add(t.getTarget());
+                    transitions.add(t);
+                } else {
+                    final Transition t = new Transition(split[0], split[1], split[2], split[3]);
+                    inputs.add(t.getInput());
+                    if (!states.contains(t.getSource())) states.add(t.getSource());
+                    if (!states.contains(t.getTarget())) states.add(t.getTarget());
+                    transitions.add(t);
+                }
             }
         }
-
 
         final Alphabet<String> a = Alphabets.fromCollection(inputs);
 
