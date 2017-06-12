@@ -1,5 +1,6 @@
 package net.automatalib.serialization.fsm;
 
+import static com.google.common.base.Preconditions.checkState;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -30,7 +31,8 @@ public class FSM {
         int currentPart = 0;
 
         Set<String> inputs = new HashSet<>();
-        Set<Transition> transitions = new HashSet<>();
+        HashMap<String, Transition> loops = new HashMap();
+        Set<Transition> transitions = new HashSet();
         List<String> states = new ArrayList<>();
         while (s.hasNextLine()) {
             final String line = s.nextLine();
@@ -44,13 +46,26 @@ public class FSM {
                  * Otherwise we obtain the transition from one edge/label.
                  */
                 if (split.length == 3) {
-                    String line2 = s.nextLine();
-                    String[] split2 = line2.split(" ");
-                    final Transition t = new Transition(split[0], split2[1], split[2], split2[2]);
-                    inputs.add(t.getInput());
-                    if (!states.contains(t.getSource())) states.add(t.getSource());
-                    if (!states.contains(t.getTarget())) states.add(t.getTarget());
-                    transitions.add(t);
+                    final Transition o = loops.get(split[1]);
+                    if (o != null) { // this is a self loop
+                        final Transition t = new Transition(
+                                split[0], o.getTarget(),
+                                split[2], '"' + o.getOutput() + '"');
+                        inputs.add(t.getInput());
+                        if (!states.contains(t.getSource())) states.add(t.getSource());
+                        transitions.add(t);
+                    } else {
+                        String line2 = s.nextLine();
+                        String[] split2 = line2.split(" ");
+                        checkState(split[1].equals(split2[0]),
+                                    "next state is not equal to current state");
+                        final Transition t = new Transition(split[0], split2[1], split[2], split2[2]);
+                        inputs.add(t.getInput());
+                        if (!states.contains(t.getSource())) states.add(t.getSource());
+                        if (!states.contains(t.getTarget())) states.add(t.getTarget());
+                        transitions.add(t);
+                        loops.put(split2[0], t);
+                    }
                 } else {
                     final Transition t = new Transition(split[0], split[1], split[2], split[3]);
                     inputs.add(t.getInput());
@@ -71,7 +86,9 @@ public class FSM {
         cm.setInitial(stateMap.get("1"), true);
 
         for (Transition t : transitions) {
-            cm.addTransition(stateMap.get(t.getSource()), t.getInput(), stateMap.get(t.getTarget()), t.getOutput());
+            cm.addTransition(
+                    stateMap.get(t.getSource()), t.getInput(),
+                    stateMap.get(t.getTarget()), t.getOutput());
         }
 
         s.close();
@@ -93,6 +110,11 @@ public class FSM {
             this.target = target;
             this.input = input.substring(1, input.length() - 1);
             this.output = output.substring(1, output.length() - 1);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s - %s / %s -> %s", source, input, output, target);
         }
     }
 }
