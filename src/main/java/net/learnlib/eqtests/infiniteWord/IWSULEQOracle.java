@@ -23,38 +23,38 @@ import net.automatalib.words.WordBuilder;
  * @author jeroen
  */
 public abstract class IWSULEQOracle<S,I,T,O> implements EquivalenceOracle<TransitionOutputAutomaton<S,I,T,O>, I, Word<O>> {
-    
+
     @Getter
     @Setter
     private SUL<I,O> sul;
-    
+
     @Getter
     @Setter
     private InfiniteWord<I, S> infiniteWord;
-    
+
     @Getter
     @Setter
     private boolean removeUnsuccessful;
-    
+
     public IWSULEQOracle(SUL sul, boolean removeUnsuccessful) {
         this(sul, null, removeUnsuccessful);
     }
-    
+
     public IWSULEQOracle(SUL sul, InfiniteWord infiniteWord, boolean removeUnsuccessful) {
         this.infiniteWord = infiniteWord;
         this.sul = sul;
         this.removeUnsuccessful = removeUnsuccessful;
     }
-    
+
     protected boolean stop() {
         return false;
     }
 
     @Override
     public DefaultQuery<I, Word<O>> findCounterExample(TransitionOutputAutomaton<S, I, T, O> hypothesis, Collection<? extends I> inputs) {
-                        
+
         DefaultQuery<I, Word<O>> counterExample = null;
-        
+
         if (infiniteWord != null)  {
             S currentState = hypothesis.getInitialState();
 
@@ -64,16 +64,16 @@ public abstract class IWSULEQOracle<S,I,T,O> implements EquivalenceOracle<Transi
             final WordBuilder<O> finiteOutputBuilder = new WordBuilder();
 
             try {
-                
+
                 Iterator<I> infiniteWordIterator = infiniteWord.iterator();
 
                 boolean validInput = true;
-                                
+
                 while (infiniteWordIterator.hasNext() && counterExample == null && validInput && !stop()) {
 
                     final I input = infiniteWordIterator.next();
-                    
-                    if (validInput = inputs.contains(input)) {                
+
+                    if (validInput = inputs.contains(input)) {
                         finiteInputBuilder.append(input);
 
                         final O outputHyp = hypothesis.getOutput(currentState, input);
@@ -92,7 +92,7 @@ public abstract class IWSULEQOracle<S,I,T,O> implements EquivalenceOracle<Transi
             } finally {
                 sul.post();
             }
-            
+
             if (removeUnsuccessful) infiniteWord = null;
         }
 

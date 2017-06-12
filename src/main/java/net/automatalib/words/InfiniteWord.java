@@ -17,37 +17,37 @@ import net.automatalib.ts.simple.SimpleDTS;
  * @author jeroen
  */
 public class InfiniteWord<I, S> extends Word<I> {
-    
+
     @Getter
     private final SimpleDTS<S, I> ts;
-    
+
     private final Alphabet<I> alphabet;
-    
+
     @Getter
     private final Word<I> prefix;
-    
+
     @Getter
     private final Word<I> loop;
-    
+
     public <S> InfiniteWord(SimpleDTS ts, Alphabet alphabet) throws IllegalArgumentException {
         this.ts = ts;
         this.alphabet = alphabet;
-        
+
         final Word one = unroll(1);
-        final Word two = unroll(2);        
+        final Word two = unroll(2);
         loop = two.subWord(one.length());
         prefix = one.prefix(one.length() - loop.length());
     }
-    
+
     public final Word<I> unroll(int count) throws IllegalArgumentException {
         final Map<S, Integer> visitCount = new HashMap<>();
-                
+
         S currentState = ts.getInitialState();
-        
+
         Word<I> input = Word.epsilon();
-        
+
         if (currentState != null) {
-        
+
             visitCount.put(currentState, 1);
 
             do {
@@ -65,14 +65,14 @@ public class InfiniteWord<I, S> extends Word<I> {
                     }
                 }
                 if (letter == null || nextState == null) throw new IllegalArgumentException("DTS does not contain an infinite word.");
-                else {                    
+                else {
                     currentState = nextState;
                     visitCount.put(currentState, visitCount.getOrDefault(currentState, 0) + 1);
                     input = input.append(letter);
                 }
             } while (visitCount.get(currentState) <= count);
         }
-                
+
         return input;
     }
 
@@ -80,7 +80,7 @@ public class InfiniteWord<I, S> extends Word<I> {
     public I getSymbol(int index) {
         throw new InfiniteWordException();
 //        if (!isEmpty()) {
-//            
+//
 //        } else throw new IndexOutOfBoundsException(Integer.toString(index));
     }
 
@@ -111,12 +111,12 @@ public class InfiniteWord<I, S> extends Word<I> {
     public void print(Appendable a) throws IOException {
         throw new InfiniteWordException();
     }
-        
+
 	private class Iterator implements java.util.Iterator<I> {
 
         private final java.util.Iterator<I> prefixIterator = prefix.iterator();
         private java.util.Iterator<I> loopIterator = loop.iterator();
-        
+
         @Override
         public boolean hasNext() {
             return !isEmpty();
@@ -161,5 +161,5 @@ public class InfiniteWord<I, S> extends Word<I> {
     @Override
     public String toString() {
         return String.format("prefix: %s, loop: %s", prefix, loop);
-    }    
+    }
 }

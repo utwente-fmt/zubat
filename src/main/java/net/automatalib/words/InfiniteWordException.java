@@ -10,7 +10,7 @@ package net.automatalib.words;
  * @author jeroen
  */
 public class InfiniteWordException extends IllegalStateException {
-    
+
     public InfiniteWordException() {
         super("Can not perform operation, because this is an infite word.");
     }

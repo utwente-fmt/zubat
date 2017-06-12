@@ -1,12 +1,12 @@
 package net.automatalib.serialization.etf;
 
 public class ETFEdge {
-	
+
 	private String src;
 	private String tgt;
 	private String input;
 	private String output;
-	
+
 	public ETFEdge(String src, String tgt, String input, String output) {
 		super();
 		this.src = src;

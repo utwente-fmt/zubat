@@ -17,35 +17,35 @@ import net.automatalib.words.Alphabet;
 import net.automatalib.words.impl.Alphabets;
 
 public class FSM {
-    
+
     public static CompactMealy<String, String> parseMealy(File f) throws FileNotFoundException {
-        
+
         final Scanner s = new Scanner(new FileReader(f));
 
-        /* Keep track of which part in the FSM we are:        
+        /* Keep track of which part in the FSM we are:
          *  0: State definition
          *  1: State vectors
          *  2: Transitions between states
          * We are only interested in part 3. */
         int currentPart = 0;
-        
+
         Set<String> inputs = new HashSet<>();
         Set<Transition> transitions = new HashSet<>();
         List<String> states = new ArrayList<>();
         while (s.hasNextLine()) {
             final String line = s.nextLine();
-            
+
             if (line.equals("---")) currentPart++;
             else if (currentPart == 2) {
-                final String[] split = line.split(" ");  
-   
+                final String[] split = line.split(" ");
+
                 	/*
                 	 * If the split has length three, we assume one label per edge and merge two edges/lines.
                 	 * Otherwise we obtain the transition from one edge/label.
                 	 */
                 	if(split.length == 3){
                 		String line2 = s.nextLine();
-                		String[] split2 = line2.split(" ");  
+                		String[] split2 = line2.split(" ");
                 		final Transition t = new Transition(split[0], split2[1], split[2], split2[2]);
                         inputs.add(t.getInput());
                         if (!states.contains(t.getSource())) states.add(t.getSource());
@@ -58,37 +58,37 @@ public class FSM {
                         if (!states.contains(t.getTarget())) states.add(t.getTarget());
                         transitions.add(t);
                 	}
-                
+
             }
         }
 
-        
+
         final Alphabet<String> a = Alphabets.fromCollection(inputs);
-        
+
         CompactMealy<String, String> cm = new CompactMealy(a, states.size());
-        
+
         Map<String, Integer> stateMap = new HashMap<>();
         for (String state : states) stateMap.put(state, cm.addState());
-        
+
         cm.setInitial(stateMap.get("1"), true);
-        
+
         for (Transition t : transitions) {
             cm.addTransition(stateMap.get(t.getSource()), t.getInput(), stateMap.get(t.getTarget()), t.getOutput());
         }
-        
+
         s.close();
-        
+
         return cm;
     }
-    
+
     @EqualsAndHashCode
     public static class Transition {
-        
+
         @Getter private final String source;
         @Getter private final String target;
         @Getter private final String input;
         @Getter private final String output;
-        
+
         public Transition(final String source, final String target,
             final String input, final String output) {
             this.source = source;
