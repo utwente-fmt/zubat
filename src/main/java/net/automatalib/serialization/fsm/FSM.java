@@ -3,9 +3,10 @@ package net.automatalib.serialization.fsm;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -30,7 +31,7 @@ public class FSM {
         
         Set<String> inputs = new HashSet<>();
         Set<Transition> transitions = new HashSet<>();
-        Set<String> states = new HashSet<>();        
+        List<String> states = new ArrayList<>();
         while (s.hasNextLine()) {
             final String line = s.nextLine();
             
@@ -47,14 +48,14 @@ public class FSM {
                 		String[] split2 = line2.split(" ");  
                 		final Transition t = new Transition(split[0], split2[1], split[2], split2[2]);
                         inputs.add(t.getInput());
-                        states.add(t.getSource());
-                        states.add(t.getTarget());
-                        transitions.add(t);
+                        if (!states.contains(t.getSource())) states.add(t.getSource());
+		        if (!states.contains(t.getTarget())) states.add(t.getTarget());
+		        transitions.add(t);
                 	} else {
                 		final Transition t = new Transition(split[0], split[1], split[2], split[3]);
                         inputs.add(t.getInput());
-                        states.add(t.getSource());
-                        states.add(t.getTarget());
+                        if (!states.contains(t.getSource())) states.add(t.getSource());
+                        if (!states.contains(t.getTarget())) states.add(t.getTarget());
                         transitions.add(t);
                 	}
                 
